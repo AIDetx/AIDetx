@@ -1,5 +1,6 @@
 data/ai**
 data/human**
+.vscode
 
 # Prerequisites
 *.d
