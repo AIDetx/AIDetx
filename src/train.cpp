@@ -17,7 +17,6 @@ struct MyArgs : public argparse::Args {
     string &output = kwarg("o,output", "The output folder to save the models and configs");
     string &alphabet = kwarg("a,alphabet", "The alphabet file if empty, will use the alphabet from the data (converts to lower case)").set_default("");
     int &k = kwarg("k", "k-order Markov model").set_default(5);
-    double &alpha = kwarg("s", "The smoothing factor (alpha) value").set_default(1);
 };
 
 
@@ -38,10 +37,6 @@ void sanitize(ifstream &human_data, ifstream &ai_data) {
     }
     if (args.k < 1 || args.k > 10) {
         printf("Error: k must be between 1 and 10\n");
-        exit(1);
-    }
-    if (args.alpha <= 0 || args.alpha > 1) {
-        printf("Error: alpha must be between ]0, 1]\n");
         exit(1);
     }
 }
@@ -93,7 +88,6 @@ void save_config(){
     }
     json config = {
         {"k", args.k},
-        {"alpha", args.alpha},
         {"n_chars", n_chars},
         {"alphabet", alphabet_str}
     };
