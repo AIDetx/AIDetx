@@ -138,12 +138,15 @@ void create_model(ifstream &data, string model_name) {
         printf("Error: Could not create model file\n");
         exit(1);
     }
+    int total;
     for (auto const& [key, value] : model) {
+        total = 0;
         model_out << key << ": ";
         for (int i = 0; i < n_chars; i++) {
             model_out << value[i] << " ";
+            total += value[i];
         }
-        model_out << "\n";
+        model_out << total << endl;
         delete[] value;
     }
     model_out.close();
