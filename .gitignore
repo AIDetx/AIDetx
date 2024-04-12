@@ -1,6 +1,7 @@
 data/ai**
 data/human**
 .vscode
+models/**/*.txt
 
 # Prerequisites
 *.d

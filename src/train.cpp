@@ -24,7 +24,7 @@ struct MyArgs : public argparse::Args {
 MyArgs args;
 set<char> alphabet;
 int n_chars = 0;
-int mapping[256] = {-1};
+int mapping[256];
 
 
 void sanitize(ifstream &human_data, ifstream &ai_data) {
@@ -59,6 +59,9 @@ void append_to_alphabet(ifstream &data) {
 
 
 void process_alphabet(ifstream &human_data, ifstream &ai_data) {
+    for (int i = 0; i < 256; i++) {
+        mapping[i] = -1;
+    }
     if (!args.alphabet.empty()){
         ifstream alphabet_file(args.alphabet);
         if (!alphabet_file.is_open()) {
@@ -94,8 +97,65 @@ void save_config(){
         {"n_chars", n_chars},
         {"alphabet", alphabet_str}
     };
+    cout << config.dump(4) << endl;
     config_out << config.dump(4);
     config_out.close();
+}
+
+
+void create_model(ifstream &data, string model_name) {
+    unordered_map<string, int*> model;
+    string key = "";
+    char c;
+    int *values;
+    
+    int i = 0;
+    while (i < args.k) {
+        c = data.get();
+        if (mapping[static_cast<unsigned char>(c)] == -1) {
+            continue;
+        }
+        key += c;
+        i++;
+    }
+
+    while ((c = data.get()) != EOF) {
+        c = tolower(c);
+        if (mapping[static_cast<unsigned char>(c)] == -1) {
+            continue;
+        }
+        if (model.find(key) == model.end()) {
+            values = new int[n_chars];
+            for (int i = 0; i < n_chars; i++) {
+                values[i] = 0;
+            }
+            values[mapping[static_cast<unsigned char>(c)]] = 1;
+            model[key] = values;
+        }
+        else {
+            model[key][mapping[static_cast<unsigned char>(c)]]++;
+        }
+        key.erase(0, 1);
+        key += c;
+    }
+
+    ofstream model_out(args.output + "/" + model_name + ".txt");
+    if (!model_out.is_open()) {
+        printf("Error: Could not create model file\n");
+        exit(1);
+    }
+    for (auto const& [key, value] : model) {
+        model_out << key << ": ";
+        for (int i = 0; i < n_chars; i++) {
+            model_out << value[i] << " ";
+        }
+        model_out << "\n";
+        delete[] value;
+    }
+    model_out.close();
+    model.clear();
+
+    printf("Model %s created\n", model_name.c_str());
 }
 
 
@@ -108,6 +168,8 @@ int main(int argc, char* argv[]) {
     sanitize(human_data, ai_data);
     process_alphabet(human_data, ai_data);
     save_config();
+    create_model(human_data, "human");
+    create_model(ai_data, "ai");
 
     return 0;
 }
