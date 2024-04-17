@@ -141,7 +141,7 @@ void create_model(ifstream &data, string model_name) {
     int total;
     for (auto const& [key, value] : model) {
         total = 0;
-        model_out << key << ": ";
+        model_out << key << " ";
         for (int i = 0; i < n_chars; i++) {
             model_out << value[i] << " ";
             total += value[i];
