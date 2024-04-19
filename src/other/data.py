@@ -2,6 +2,7 @@ from datasets import load_dataset
 from itertools import chain
 import random
 import argparse
+import re
 from pathlib import Path
 
 def save_samples(samples, path):
@@ -29,7 +30,7 @@ human_samples = []
 ai_samples = []
 
 for sample in chain(dataset["train"], dataset["test"]):
-    text = sample["text"].strip().replace("\n", " ")
+    text = re.sub(r"[\n\r]", " ", sample["text"].strip())
     if len(text) < 100:
         continue
     if sample["generated"] == 0:
