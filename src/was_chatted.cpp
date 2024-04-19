@@ -86,8 +86,9 @@ void load_model(unordered_map<string, int*> &model, string model_name) {
 
     while (getline(model_file, line)) {
         counts = new int[n_chars + 1];
+        key = line.substr(0, k);
+        line = line.substr(k + 1);
         istringstream iss(line);
-        iss >> key;
         for (int i = 0; i < n_chars + 1; i++) {
             iss >> value;
             counts[i] = value;
