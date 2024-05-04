@@ -105,7 +105,7 @@ void create_model(ifstream &data, string model_name) {
     
     int i = 0;
     while (i < args.k) {
-        c = data.get();
+        c = tolower(data.get());
         if (mapping[static_cast<unsigned char>(c)] == -1) {
             continue;
         }
