@@ -4,8 +4,8 @@ import argparse
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-SCRIPT_TRAIN = "./bin/train"
-SCRIPT_WAS_CHATTED = "./bin/was_chatted"
+TRAIN = "./bin/train"
+WAS_CHATTED = "./bin/was_chatted"
 ALPHA = 0.5
 
 parser = argparse.ArgumentParser()
@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 
 def run_train(human_file, ai_file, output, alphabet_file, k):
-    command = f"{SCRIPT_TRAIN} -h {human_file} -g {ai_file} -a {alphabet_file} -k {k} -o {output}"
+    command = f"{TRAIN} -h {human_file} -g {ai_file} -a {alphabet_file} -k {k} -o {output}"
     try:
         result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE)
         result = result.stdout.decode("utf-8")
@@ -28,7 +28,7 @@ def run_train(human_file, ai_file, output, alphabet_file, k):
 
 
 def run_was_chatted(model, data, alpha, name):
-    command = f"{SCRIPT_WAS_CHATTED} -m {model} -d {data} -a {alpha}"
+    command = f"{WAS_CHATTED} -m {model} -d {data} -a {alpha}"
     try:
         result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE)
         result = result.stdout.decode("utf-8")
@@ -40,13 +40,13 @@ def run_was_chatted(model, data, alpha, name):
     correct = 0
     for line in result:
         if line.startswith("Total samples: "):
-            samples = int(line.split(": ")[1])
+            samples = line.split(": ")[1]
         elif line.startswith("Samples classified as human: ") and name == "human":
             correct = line.split(": ")[1].split(",")[0]
         elif line.startswith("Samples classified as AI: ") and name == "ai":
             correct = line.split(": ")[1].split(",")[0]
 
-    return samples, int(correct)
+    return int(samples), int(correct)
 
 
 if __name__ == "__main__":
@@ -77,6 +77,9 @@ if __name__ == "__main__":
     h_file = open(args.not_gpt, "r")
     g_file = open(args.gpt, "r")
 
+    accs = []
+    samples = []
+
     for i in range(args.n):
         print(f"\n====== Samples 0 --> {(i+1)*step} ======")
 
@@ -88,22 +91,37 @@ if __name__ == "__main__":
             for j in range(step):
                 f.write(g_file.readline())
 
-        Path(f"models/references_analysis/{i}").mkdir(parents=True, exist_ok=True)
+        Path(f"models/references/{i}").mkdir(parents=True, exist_ok=True)
 
         print("Training model")
-        run_train("data/temp/human_train.txt", "data/temp/ai_train.txt", f"models/references_analysis/{i}", args.alphabet, args.k)
+        run_train("data/temp/human_train.txt", "data/temp/ai_train.txt", f"models/references/{i}", args.alphabet, args.k)
 
         print("Evaluating model with human samples")
-        samples_human, correct_human = run_was_chatted(f"models/references_analysis/{i}", "data/human_test.txt", ALPHA, "human")
+        samples_human, correct_human = run_was_chatted(f"models/references/{i}", "data/human_test.txt", ALPHA, "human")
 
         print("Evaluating model with AI samples")
-        samples_ai, correct_ai = run_was_chatted(f"models/references_analysis/{i}", "data/ai_test.txt", ALPHA, "ai")
+        samples_ai, correct_ai = run_was_chatted(f"models/references/{i}", "data/ai_test.txt", ALPHA, "ai")
 
         acc = (correct_human + correct_ai) / (samples_human + samples_ai)
+        accs.append(acc)
+        samples.append((i+1) * step)
         print(f"Accuracy: {acc}")
-    
-
 
     h_file.close()
     g_file.close()
     os.system("rm -r data/temp")
+    os.system("rm -r models/references")
+
+    # save results as csv
+    with open("src/other/references_accs.csv", "w") as f:
+        f.write("Samples,Accuracy\n")
+        for i in range(len(accs)):
+            f.write(f"{samples[i]},{accs[i]}\n")
+    
+    # plot
+    plt.plot(samples, accs)
+    plt.xlabel("Number of samples")
+    plt.ylabel("Accuracy")
+    plt.title("Accuracy vs Number of samples")
+    plt.savefig("src/other/references_accs.png")
+    plt.show()
