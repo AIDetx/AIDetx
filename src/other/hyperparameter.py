@@ -76,8 +76,8 @@ if __name__ == "__main__":
         
         # Hyperparameter tunning
         # values to test
-        ks = [1, 2]
-        alphas = [0.1, 0.2]
+        ks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        alphas = [0.1, 0.2, 0.4, 0.7, 1]
         
         accs = []   # list of list of performance of alpha for each k
         evaluation_times = []   # list of list of evaluation times for each alpha for each k
