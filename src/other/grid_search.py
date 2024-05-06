@@ -40,7 +40,7 @@ for dataset in DATASETS:
                 time = float(result[-1].split(":")[1])
                 hits = human_hits if type_ == "human" else n_samples - human_hits
                 misses = n_samples - hits
-                df.loc[i] = [dataset, f"{dataset}_{k}", time, k, alpha, n_samples, hits, misses]
+                df.loc[i] = [dataset, type_, time, k, alpha, n_samples, hits, misses]
                 i += 1
 
 df.to_csv(OUTPUT, index=False)
