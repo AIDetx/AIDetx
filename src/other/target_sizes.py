@@ -11,6 +11,7 @@ plt.rcParams.update({'font.size': 13})
 TRAIN = "./bin/train"
 WAS_CHATTED = "./bin/was_chatted"
 ALPHA = 0.5
+K = 5
 
 STEP = 50
 LOWEST_SAMPLE_SIZE = 2364
@@ -174,10 +175,10 @@ if __name__ == "__main__":
                 f.write(line[:i] + "\n")
         
         print("Evaluating model with human samples")
-        samples_human, correct_human = run_was_chatted(f"models/k_5", "data/temp/target/human_test.txt", ALPHA, "human")
+        samples_human, correct_human = run_was_chatted(f"models/k_{K}", "data/temp/target/human_test.txt", ALPHA, "human")
 
         print("Evaluating model with AI samples")
-        samples_ai, correct_ai = run_was_chatted(f"models/k_5", "data/temp/target/ai_test.txt", ALPHA, "ai")
+        samples_ai, correct_ai = run_was_chatted(f"models/k_{K}", "data/temp/target/ai_test.txt", ALPHA, "ai")
 
         acc = (correct_human + correct_ai) / (samples_human + samples_ai)
         human_acc = correct_human / samples_human
