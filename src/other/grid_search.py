@@ -7,7 +7,7 @@ DATASETS = ["data1", "data2"]
 K_VALUES = [3, 4, 5, 6, 7, 8, 9, 10]
 ALPHAS = [0.1, 0.3, 0.5, 0.7, 0.9]
 
-colls = ["dataset", "file", "k", "alpha", "samples", "hits", "misses"]
+colls = ["dataset", "file", "time", "k", "alpha", "samples", "hits", "misses"]
 df = pd.DataFrame(columns=colls)
 
 def model_cmd(dataset, k):
@@ -33,13 +33,14 @@ for dataset in DATASETS:
             for type_ in ["human", "ai"]:
                 cmd = validate_cmd(dataset, k, alpha, type_)
                 print(cmd)
-                result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
-                result = result.stdout.decode("utf-8").split("\n")
-                n_samples = int(result[-3].split(":")[1])
-                human_hits = int(result[-2].split(":")[1].split(",")[0])
+                result = subprocess.run(cmd, shell=True, capture_output=True)
+                result = result.stdout.decode("utf-8").split("\n")[:-1]
+                n_samples = int(result[-5].split(":")[1])
+                human_hits = int(result[-4].split(":")[1].split(",")[0])
+                time = float(result[-1].split(":")[1])
                 hits = human_hits if type_ == "human" else n_samples - human_hits
                 misses = n_samples - hits
-                df.loc[i] = [dataset, type_, k, alpha, n_samples, hits, misses]
+                df.loc[i] = [dataset, f"{dataset}_{k}", time, k, alpha, n_samples, hits, misses]
                 i += 1
 
 df.to_csv(OUTPUT, index=False)

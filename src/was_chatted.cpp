@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <cmath>
+#include <chrono>
 
 #include "argparse.hpp"
 #include "json.hpp"
@@ -125,18 +126,17 @@ void evaluate_sample(string sample) {
     sample_count++;
     double human_bits = 0;
     double ai_bits = 0;
-    string class_;
-
-    if ((int) sample.size() <= k) {
-        printf("Error: Sample %.0f is too short\n", sample_count);
-        return;
-    }
 
     string clean_sample = "";
     for (char c : sample) {
         if (mapping[static_cast<unsigned char>(c)] != -1) {
             clean_sample += c;
         }
+    }
+
+    if ((int) clean_sample.size() < k) {
+        printf("Sample too short, skipping\n");
+        return;
     }
     
     string key = clean_sample.substr(0, k);
@@ -149,15 +149,13 @@ void evaluate_sample(string sample) {
     }
 
     if (human_bits > ai_bits) {
-        class_ = "AI";
         total_ai++;
     } else {
-        class_ = "Human";
         total_human++;
     }
 
     if (args.verbose) {
-        printf("%.0f: %.2f | %.2f -> %s\n", sample_count, human_bits, ai_bits, class_.c_str());
+        printf("%.0f: %.2f | %.2f -> %s\n", sample_count, human_bits, ai_bits, human_bits > ai_bits ? "AI" : "Human");
     }
 }
 
@@ -173,15 +171,27 @@ int main(int argc, char* argv[]) {
     load_model(ai_model, "ai");
     calculate_fallback();
 
-    string sample;
     printf("Evaluating samples from %s\n", args.data.c_str());
+    auto start = chrono::high_resolution_clock::now();
+    string sample;
     while (getline(data, sample)) {
         evaluate_sample(sample);
     }
+    auto end = chrono::high_resolution_clock::now();
+    double duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
 
     printf("\nTotal samples: %.0f\n", sample_count);
     printf("Samples classified as human: %d, %.2f%%\n", total_human, (total_human / sample_count) * 100);
     printf("Samples classified as AI: %d, %.2f%%\n", total_ai, (total_ai / sample_count) * 100);
+    printf("\nEvaluation time (s): %.4f\n", duration / 1000);
+
+    // free memory
+    for (auto &it : human_model) {
+        delete[] it.second;
+    }
+    for (auto &it : ai_model) {
+        delete[] it.second;
+    }
 
     return 0;
 }
