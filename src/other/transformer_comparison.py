@@ -78,7 +78,15 @@ accuracy = (human_correct + ai_correct) / total_samples
 print(f"Accuracy: {accuracy}")
 
 # F1 score
-precision = human_correct / (human_correct + ai_incorrect)
-recall = human_correct / (human_correct + human_incorrect)
-f1 = 2 * precision * recall / (precision + recall)
+human_precision = human_correct / (human_correct + ai_incorrect)
+human_recall = human_correct / (human_correct + human_incorrect)
+human_f1 = 2 * human_precision * human_recall / (human_precision + human_recall)
+print(f"Human F1 score: {human_f1}")
+
+ai_precision = ai_correct / (ai_correct + human_incorrect)
+ai_recall = ai_correct / (ai_correct + ai_incorrect)
+ai_f1 = 2 * ai_precision * ai_recall / (ai_precision + ai_recall)
+print(f"AI F1 score: {ai_f1}")
+
+f1 = (human_f1 + ai_f1) / 2
 print(f"F1 score: {f1}")
