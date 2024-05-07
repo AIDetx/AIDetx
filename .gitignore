@@ -3,6 +3,7 @@ data/data2**
 .vscode
 models/**
 bin/**
+report/report.tex
 
 **/__pycache__/**
 

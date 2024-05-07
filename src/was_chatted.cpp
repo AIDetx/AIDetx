@@ -32,8 +32,8 @@ unordered_map<string, int*> ai_model;
 
 
 void sanitize() {
-    if (args.alpha <= 0 || args.alpha > 1) {
-        printf("Error: alpha must be between ]0, 1]\n");
+    if (args.alpha <= 0) {
+        printf("Error: alpha must be greater than 0\n");
         exit(1);
     }
     if (!filesystem::exists(args.model)) {

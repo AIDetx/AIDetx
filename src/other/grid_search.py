@@ -5,7 +5,7 @@ import pandas as pd
 OUTPUT = "src/other/grid_search.csv"
 DATASETS = ["data1", "data2"]
 K_VALUES = [3, 4, 5, 6, 7, 8, 9, 10]
-ALPHAS = [0.1, 0.3, 0.5, 0.7, 0.9]
+ALPHAS = [0.1, 0.5, 1, 5, 10]
 
 colls = ["dataset", "file", "time", "k", "alpha", "samples", "hits", "misses"]
 df = pd.DataFrame(columns=colls)
