@@ -14,6 +14,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', help='file with hyperparameter results', default='src/other/grid_search.csv')
 args = parser.parse_args()
 
+DATA = "data1"
+
 def calculate_f1_score(human_correct, human_incorrect, ai_correct, ai_incorrect):
     # F1 score
     human_precision = human_correct / (human_correct + ai_incorrect)
@@ -37,14 +39,16 @@ if __name__ == "__main__":
     ks = data['k'].unique()
     ks_index = {k: i for i, k in enumerate(ks)}
     alphas = data['alpha'].unique()
+    alphas_index = {alpha: i for i, alpha in enumerate(alphas)}
+    datasets = data['dataset'].unique()
     
     print(data)
     print(ks)
     print(alphas)
     
     # iterate over data
-    accs = [[] for _ in range(len(ks))]
-    evaluation_times = [[] for _ in range(len(ks))]
+    accs = [[0 for _ in range(len(alphas))] for _ in range(len(ks))]
+    evaluation_times = [[0 for _ in range(len(alphas))] for _ in range(len(ks))]
     for data_index, row in data.iterrows():
         # if row is odd
         if data_index % 2 == 1:
@@ -56,8 +60,10 @@ if __name__ == "__main__":
         # row is human and next row is ai
         f1_score = calculate_f1_score(row['hits'], row['misses'], next_row['hits'], next_row['misses'])
         
-        accs[ks_index[row['k']]].append(f1_score)
-        evaluation_times[ks_index[row['k']]].append(next_row['time'] + row['time'])
+        accs[ks_index[row['k']]][alphas_index[row['alpha']]] += f1_score
+        evaluation_times[ks_index[row['k']]][alphas_index[row['alpha']]] += (next_row['time'] + row['time'])
+    
+    accs = [ [acc / len(datasets) for acc in k] for k in accs]
         
     
     # plot the results using x as k, y as F1 Score and different colors for each alpha
