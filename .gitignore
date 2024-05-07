@@ -4,6 +4,8 @@ data/data2**
 models/**
 bin/**
 
+**/__pycache__/**
+
 # Prerequisites
 *.d
 
