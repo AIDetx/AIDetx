@@ -14,7 +14,7 @@ using json = nlohmann::json;
 
 struct MyArgs : public argparse::Args {
     string &model = kwarg("m,model", "The models folder");
-    string &data = kwarg("d,data", "The data file to evaluate (1 sample per line)");
+    string &data = kwarg("d,data", "The data file to evaluate (1 sample per line), if not provided, iterative mode is enabled").set_default("");
     double &alpha = kwarg("a,alpha", "The smoothing factor (alpha) value").set_default(1);
     bool &verbose = flag("v,verbose", "Print verbose output").set_default(false);
 };
@@ -31,11 +31,7 @@ unordered_map<string, int*> human_model;
 unordered_map<string, int*> ai_model;
 
 
-void sanitize(ifstream &data) {
-    if (!data.is_open()) {
-        printf("Error: Could not open data file\n");
-        exit(1);
-    }
+void sanitize() {
     if (args.alpha <= 0 || args.alpha > 1) {
         printf("Error: alpha must be between ]0, 1]\n");
         exit(1);
@@ -157,33 +153,64 @@ void evaluate_sample(string sample) {
     if (args.verbose) {
         printf("%.0f: %.2f | %.2f -> %s\n", sample_count, human_bits, ai_bits, human_bits > ai_bits ? "AI" : "Human");
     }
+    if (args.data.empty()) {
+        printf("\nHuman bits: %.2f\n", human_bits);
+        printf("AI bits: %.2f\n", ai_bits);
+        printf("Sample classified as: %s\n", human_bits > ai_bits ? "AI" : "Human");
+    }
+}
+
+
+void iterative_mode(){
+    printf("Iterative mode enabled\n");
+    string sample;
+    while (true) {
+        printf("\nEnter sample: ");
+        getline(cin, sample);
+        if (sample.empty()) {
+            break;
+        }
+        evaluate_sample(sample);
+    }
+}
+
+
+void from_file_mode(){
+    printf("Evaluating samples from %s\n", args.data.c_str());
+    string sample;
+    ifstream data(args.data);
+    if (!data.is_open()) {
+        printf("Error: Could not open data file\n");
+        exit(1);
+    }
+    auto start = chrono::high_resolution_clock::now();
+    while (getline(data, sample)) {
+        evaluate_sample(sample);
+    }
+    auto end = chrono::high_resolution_clock::now();
+    double duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    printf("\nTotal samples: %.0f\n", sample_count);
+    printf("Samples classified as human: %d, %.2f%%\n", total_human, (total_human / sample_count) * 100);
+    printf("Samples classified as AI: %d, %.2f%%\n", total_ai, (total_ai / sample_count) * 100);
+    printf("\nEvaluation time (s): %.4f\n", duration / 1000);
 }
 
 
 int main(int argc, char* argv[]) {
 
     args.parse(argc, argv, false);
-    ifstream data(args.data);
 
-    sanitize(data);
+    sanitize();
     load_config();
     load_model(human_model, "human");
     load_model(ai_model, "ai");
     calculate_fallback();
 
-    printf("Evaluating samples from %s\n", args.data.c_str());
-    auto start = chrono::high_resolution_clock::now();
-    string sample;
-    while (getline(data, sample)) {
-        evaluate_sample(sample);
-    }
-    auto end = chrono::high_resolution_clock::now();
-    double duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
-
-    printf("\nTotal samples: %.0f\n", sample_count);
-    printf("Samples classified as human: %d, %.2f%%\n", total_human, (total_human / sample_count) * 100);
-    printf("Samples classified as AI: %d, %.2f%%\n", total_ai, (total_ai / sample_count) * 100);
-    printf("\nEvaluation time (s): %.4f\n", duration / 1000);
+    if (args.data.empty()) {
+        iterative_mode();
+    } else {
+        from_file_mode();
+    } 
 
     // free memory
     for (auto &it : human_model) {

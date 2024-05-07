@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 DATASET1 = "andythetechnerd03/AI-human-text"
-DATASET2 = "dmitva/human_ai_generated_text"
+DATASET2 = "Hello-SimpleAI/HC3"
 
 def save_samples(samples, path):
     path = Path(path)
@@ -33,13 +33,15 @@ def split_samples(samples, name):
 
 def get_samples1():
     dataset = load_dataset(DATASET1)
+    diff = set()
     human_samples = []
     ai_samples = []
 
     for sample in chain(dataset["train"], dataset["test"]):
         text = sample["text"].strip()
-        if len(text) < args.min_text_length:
+        if len(text) < args.min_text_length or text in diff:
             continue
+        diff.add(text)
         text = re.sub(r"[\n\r]+", " ", text)
         text = re.sub(r"\s+", " ", text)
         if sample["generated"] == 0:
@@ -53,20 +55,21 @@ def get_samples1():
 
 
 def get_samples2():
-    dataset = load_dataset(DATASET2)
+    dataset = load_dataset(DATASET2, name="all")
+    diff = set()
     human_samples = []
     ai_samples = []
 
     for sample in dataset["train"]:
-        human_text = sample["human_text"].strip()
-        ai_text = sample["ai_text"].strip()
-        
-        for sample, lst in [(human_text, human_samples), (ai_text, ai_samples)]:
-            if len(sample) < args.min_text_length:
-                continue
-            sample = re.sub(r"[\n\r]+", " ", sample)
-            sample = re.sub(r"\s+", " ", sample)
-            lst.append(sample)
+        for texts, lst in [(sample["human_answers"], human_samples), (sample["chatgpt_answers"], ai_samples)]:
+            for text in texts:
+                text = text.strip()
+                if len(text) < args.min_text_length or text in diff:
+                    continue
+                diff.add(text)
+                text = re.sub(r"[\n\r]+", " ", text)
+                text = re.sub(r"\s+", " ", text)
+                lst.append(text)
 
     random.shuffle(human_samples)
     random.shuffle(ai_samples)
@@ -83,6 +86,8 @@ args = parser.parse_args()
 random.seed(args.seed)
 
 for fn, dataset in [(get_samples1, "data1"), (get_samples2, "data2")]:
+    if Path(f"data/{dataset}").exists():
+        continue
     human_samples, ai_samples = fn()
     ai_total_chars = sum(len(text) for text in ai_samples)
     human_total_chars = sum(len(text) for text in human_samples)

@@ -34,6 +34,7 @@ for dataset in DATASETS:
                 cmd = validate_cmd(dataset, k, alpha, type_)
                 print(cmd)
                 result = subprocess.run(cmd, shell=True, capture_output=True)
+                print(result.stdout.decode("utf-8"))
                 result = result.stdout.decode("utf-8").split("\n")[:-1]
                 n_samples = int(result[-5].split(":")[1])
                 human_hits = int(result[-4].split(":")[1].split(",")[0])
