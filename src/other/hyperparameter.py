@@ -14,7 +14,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', help='file with hyperparameter results', default='src/other/grid_search.csv')
 args = parser.parse_args()
 
-DATA = "data1"
+ONLY_DATA = None
+# ONLY_DATA = "data2"
 
 def calculate_f1_score(human_correct, human_incorrect, ai_correct, ai_incorrect):
     # F1 score
@@ -51,7 +52,7 @@ if __name__ == "__main__":
     evaluation_times = [[0 for _ in range(len(alphas))] for _ in range(len(ks))]
     for data_index, row in data.iterrows():
         # if row is odd
-        if data_index % 2 == 1:
+        if (data_index % 2 == 1) or (ONLY_DATA and row['dataset'] != ONLY_DATA):
             continue
         
         # get next row
@@ -63,7 +64,8 @@ if __name__ == "__main__":
         accs[ks_index[row['k']]][alphas_index[row['alpha']]] += f1_score
         evaluation_times[ks_index[row['k']]][alphas_index[row['alpha']]] += (next_row['time'] + row['time'])
     
-    accs = [ [acc / len(datasets) for acc in k] for k in accs]
+    if not ONLY_DATA:
+        accs = [ [acc / len(datasets) for acc in k] for k in accs]
         
     
     # plot the results using x as k, y as F1 Score and different colors for each alpha
