@@ -3,18 +3,18 @@ import subprocess
 import argparse
 from pathlib import Path
 import matplotlib.pyplot as plt
+from sklearn.metrics import f1_score
 
 TRAIN = "./bin/train"
 WAS_CHATTED = "./bin/was_chatted"
 ALPHA = 0.5
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-ng', '--not_gpt', help='file with human text samples', default='data/human_train.txt')
-parser.add_argument('-g', '--gpt', help='file with gpt text samples', default='data/ai_train.txt')
+parser.add_argument('-d', '--dataset', help='dataset to use', default='data/data1')
 parser.add_argument('-a', '--alphabet', help='file with the alphabet', default='data/alphabet.txt')
-parser.add_argument('-k', help='context length', default=5)
+parser.add_argument('-k', help='context length', default=8)
 parser.add_argument('-n', help='number of sample points for analysis', default=20, type=int)
-parser.add_argument('-m', help='max number of samples for analysis', default=5000, type=int)
+parser.add_argument('-s', '--step', help='number of chars to add in each iter', default=100_000, type=int)
 args = parser.parse_args()
 
 
@@ -51,77 +51,85 @@ def run_was_chatted(model, data, alpha, name):
 
 if __name__ == "__main__":
 
-    h_samples = 0
-    g_samples = 0
-
-    with open(args.not_gpt, "r") as f:
-        for line in f:
-            h_samples += 1
-
-    with open(args.gpt, "r") as f:
-        for line in f:
-            g_samples += 1
-    
-    max_samples = min(h_samples, g_samples)
-    if args.m > max_samples:
-        print(f"ERROR: Max number of samples for analysis is {max_samples}")
-        exit(0)
-
-    step = args.m // args.n
-
     # create temp folder and empty files
-    Path("data/temp").mkdir(parents=True, exist_ok=True)
-    with open("data/temp/human_train.txt", "w") as f: pass
-    with open("data/temp/ai_train.txt", "w") as f: pass
+    Path(f"{args.dataset}/temp").mkdir(parents=True, exist_ok=True)
+    with open(f"{args.dataset}/temp/human_train.txt", "w") as f: pass
+    with open(f"{args.dataset}/temp/ai_train.txt", "w") as f: pass
 
-    h_file = open(args.not_gpt, "r")
-    g_file = open(args.gpt, "r")
+    h_file = open(f"{args.dataset}/human_train.txt", "r")
+    g_file = open(f"{args.dataset}/ai_train.txt", "r")
 
-    accs = []
     samples = []
+    accs = []
+    f1s = []
 
     for i in range(args.n):
-        print(f"\n====== Samples 0 --> {(i+1)*step} ======")
+        print(f"\n====== Iter: {i} ======")
 
-        with open("data/temp/human_train.txt", "a") as f:
-            for j in range(step):
-                f.write(h_file.readline())
+        total_chars = 0
+        with open(f"{args.dataset}/temp/human_train.txt", "a") as f:
+            while total_chars < args.step:
+                line = h_file.readline()
+                total_chars += len(line)
+                f.write(line)
 
-        with open("data/temp/ai_train.txt", "a") as f:
-            for j in range(step):
-                f.write(g_file.readline())
+        total_chars = 0
+        with open(f"{args.dataset}/temp/ai_train.txt", "a") as f:
+            while total_chars < args.step:
+                line = g_file.readline()
+                total_chars += len(line)
+                f.write(line)
 
-        Path(f"models/references/{i}").mkdir(parents=True, exist_ok=True)
+        Path(f"models/references/{args.dataset.split('/')[1]}/{i}").mkdir(parents=True, exist_ok=True)
 
         print("Training model")
-        run_train("data/temp/human_train.txt", "data/temp/ai_train.txt", f"models/references/{i}", args.alphabet, args.k)
+        run_train(f"{args.dataset}/temp/human_train.txt", f"{args.dataset}/temp/ai_train.txt", f"models/references/{args.dataset.split('/')[1]}/{i}", args.alphabet, args.k)
 
         print("Evaluating model with human samples")
-        samples_human, correct_human = run_was_chatted(f"models/references/{i}", "data/human_test.txt", ALPHA, "human")
+        samples_human, correct_human = run_was_chatted(f"models/references/{args.dataset.split('/')[1]}/{i}", f"{args.dataset}/human_test.txt", ALPHA, "human")
 
         print("Evaluating model with AI samples")
-        samples_ai, correct_ai = run_was_chatted(f"models/references/{i}", "data/ai_test.txt", ALPHA, "ai")
+        samples_ai, correct_ai = run_was_chatted(f"models/references/{args.dataset.split('/')[1]}/{i}", f"{args.dataset}/ai_test.txt", ALPHA, "ai")
+
 
         acc = (correct_human + correct_ai) / (samples_human + samples_ai)
         accs.append(acc)
-        samples.append((i+1) * step)
+
+        # ai is the positive class and human is the negative class
+        y_true = [0] * samples_human + [1] * samples_ai
+        y_pred = [0] * correct_human
+        y_pred += [1] * (samples_human - correct_human)
+        y_pred += [1] * correct_ai
+        y_pred += [0] * (samples_ai - correct_ai)
+        
+        f1 = f1_score(y_true, y_pred)
+        print(f"F1 Score: {f1}")
+        f1s.append(f1)
+
+        samples.append((i+1) * args.step)
         print(f"Accuracy: {acc}")
 
     h_file.close()
     g_file.close()
-    os.system("rm -r data/temp")
+    os.system(f"rm -r {args.dataset}/temp")
     os.system("rm -r models/references")
 
     # save results as csv
-    with open("src/other/references_accs.csv", "w") as f:
-        f.write("Samples,Accuracy\n")
+    with open(f"src/other/references_{args.dataset.split('/')[1]}.csv", "w") as f:
+        f.write("Samples,Accuracy,F1\n")
         for i in range(len(accs)):
-            f.write(f"{samples[i]},{accs[i]}\n")
+            f.write(f"{samples[i]},{accs[i]}, {f1s[i]}\n")
     
-    # plot
+    # plot accs
     plt.plot(samples, accs)
-    plt.xlabel("Number of samples")
+    plt.xlabel("Overall size of the reference texts")
     plt.ylabel("Accuracy")
-    plt.title("Accuracy vs Number of samples")
-    plt.savefig("src/other/references_accs.png")
+    plt.savefig(f"src/other/references_{args.dataset.split('/')[1]}.png", dpi=600)
+    plt.show()
+
+    # plot f1s
+    plt.plot(samples, f1s)
+    plt.xlabel("Overall size of the reference texts")
+    plt.ylabel("F1 Score")
+    plt.savefig(f"src/other/references_{args.dataset.split('/')[1]}_f1.png", dpi=600)
     plt.show()
