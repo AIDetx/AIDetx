@@ -31,6 +31,12 @@ def calculate_f1_score(human_correct, human_incorrect, ai_correct, ai_incorrect)
     
     return f1
 
+def calculate_accuracy(human_correct, human_incorrect, ai_correct, ai_incorrect):
+    # Accuracy
+    total_samples = human_correct + human_incorrect + ai_correct + ai_incorrect
+    accuracy = (human_correct + ai_correct) / total_samples
+    return accuracy
+
 
 if __name__ == "__main__":
     
@@ -74,6 +80,9 @@ if __name__ == "__main__":
         
         # row is human and next row is ai
         f1_score = calculate_f1_score(row['hits'], row['misses'], next_row['hits'], next_row['misses'])
+        accuracy = calculate_accuracy(row['hits'], row['misses'], next_row['hits'], next_row['misses'])
+        
+        print("k: ", row['k'], "alpha: ", row['alpha'], "f1_score: ", f1_score, "accuracy: ", accuracy, "time: ", row['time'])
         
         accs[ks_index[row['k']]][alphas_index[row['alpha']]] += f1_score
         evaluation_times[ks_index[row['k']]][alphas_index[row['alpha']]] += (next_row['time'] + row['time'])

@@ -10,17 +10,24 @@ plt.rcParams.update({'font.size': 13})
 
 TRAIN = "./bin/train"
 WAS_CHATTED = "./bin/was_chatted"
+
+K = 8
 ALPHA = 0.5
-K = 5
+ALPHABET = "data/alphabet.txt"
+
+FILE = "data/data1"
+HUMAN_FILE = f"{FILE}/human_train.txt"
+AI_FILE = f"{FILE}/ai_train.txt"
+
+IMAGES_OUTPUT_FOLDER = "src/other/target_sizes"
+# create folder if it does not exist
+Path(IMAGES_OUTPUT_FOLDER).mkdir(parents=True, exist_ok=True)
 
 STEP = 50
-LOWEST_SAMPLE_SIZE = 2364
-MAX_NUMBER_OF_SAMPLES = 5000
+LOWEST_SAMPLE_SIZE = 1500
+MAX_NUMBER_OF_SAMPLES = 1500
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-ng', '--not_gpt', help='file with human text samples', default='data/human_test.txt')
-parser.add_argument('-g', '--gpt', help='file with gpt text samples', default='data/ai_test.txt')
-parser.add_argument('-a', '--alphabet', help='file with the alphabet', default='data/alphabet.txt')
 parser.add_argument('-k', help='context length', default=5)
 parser.add_argument('-n', help='number of sample points for analysis', default=20, type=int)
 parser.add_argument('-m', help='max number of samples for analysis', default=5000, type=int)
@@ -61,8 +68,8 @@ def get_lowest_chars_samples_quant(human_samples_file, ai_samples_file, alphabet
     print("Lowest human Sample size:", lowest_human)
     print("Lowest AI Sample size:", lowest_ai)
     
-    print("Number of human samples with at least 1000 characters:", count_human)
-    print("Number of AI samples with at least 1000 characters:", count_ai)
+    print(f"Number of human samples with at least {LOWEST_SAMPLE_SIZE} characters:", count_human)
+    print(f"Number of AI samples with at least {LOWEST_SAMPLE_SIZE} characters:", count_ai)
     
     return min(lowest_human, lowest_ai)
     
@@ -117,6 +124,7 @@ def run_train(human_file, ai_file, output, alphabet_file, k):
         result = result.stdout.decode("utf-8")
     except subprocess.CalledProcessError as e:
         print("Error running command:", e)
+        exit(1)
 
 
 def run_was_chatted(model, data, alpha, name):
@@ -126,6 +134,7 @@ def run_was_chatted(model, data, alpha, name):
         result = result.stdout.decode("utf-8")
     except subprocess.CalledProcessError as e:
         print("Error running command:", e)
+        exit(1)
     
     result = result.split("\n")
     samples = 0
@@ -143,16 +152,18 @@ def run_was_chatted(model, data, alpha, name):
 
 if __name__ == "__main__":
     
-    with open(args.alphabet, "r") as f:
+    with open(ALPHABET, "r") as f:
         alphabet = f.read().strip()
     print("alphabet:", alphabet)
     print("type(alphabet):", type(alphabet))
     
-    lowest_sample_size = get_lowest_chars_samples_quant(args.not_gpt, args.gpt, alphabet)
+    lowest_sample_size = get_lowest_chars_samples_quant(HUMAN_FILE, AI_FILE, alphabet)
     
     print("Lowest sample size:", lowest_sample_size)
     
-    human_samples, ai_samples = get_lowest_chars_samples(args.not_gpt, args.gpt, alphabet)
+    # exit(0)
+    
+    human_samples, ai_samples = get_lowest_chars_samples(HUMAN_FILE, AI_FILE, alphabet)
     # with this arguments and a value of 2364 for the lowest sample size, we get 5010 but only used 5000 for both human and AI samples using the dataset 1
     
     # Create the folder that will contain the temporary datasets
@@ -200,7 +211,7 @@ if __name__ == "__main__":
     plt.xlabel("Size of samples")
     plt.ylabel("Accuracy")
     plt.title("Accuracy vs Size of samples")
-    plt.savefig("src/other/target_accs.png")
+    plt.savefig(f"{IMAGES_OUTPUT_FOLDER}/target_sizes_{FILE.split('/')[-1]}.png")
     
     # clear the plot
     plt.clf()
@@ -213,7 +224,7 @@ if __name__ == "__main__":
     plt.ylabel("Accuracy")
     plt.title("Human Accuracy vs AI Accuracy")
     plt.legend()
-    plt.savefig("src/other/target_human_ai_accs.png")
+    plt.savefig(f"{IMAGES_OUTPUT_FOLDER}/target_human_ai_{FILE.split('/')[-1]}.png")
     
     
     
