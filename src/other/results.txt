@@ -1,0 +1,19 @@
+Data 1 Human
+Total samples: 16223
+Samples classified as human: 16219, 99.98%
+Samples classified as AI: 4, 0.02%
+
+Data 1 AI
+Total samples: 17963
+Samples classified as human: 121, 0.67%
+Samples classified as AI: 17842, 99.33%
+
+Data 2 Human
+Total samples: 3593
+Samples classified as human: 3462, 96.35%
+Samples classified as AI: 131, 3.65%
+
+Data 2 AI
+Total samples: 2619
+Samples classified as human: 20, 0.76%
+Samples classified as AI: 2599, 99.24%

@@ -12,6 +12,7 @@ OUTPUT = "src/other/alphabets_search"
 Path(OUTPUT).mkdir(parents=True, exist_ok=True)
 
 DATASETS = ["data1", "data2"]
+DATASETS_NAMES = ["AI-human-text", "HC3"]
 BEST_K = 8
 BEST_ALPHA = 0.5
 
@@ -62,8 +63,8 @@ def plot_alphabet_comparison(alphabets_results, datasets, output):
     plt.ylabel("F1 Score")
     
     for i, alphabet in enumerate(alphabets_results):
-        plt.bar(np.arange(len(datasets)) + i * 0.15, [alphabets_results[alphabet][dataset] for dataset in datasets], width=0.15, label=f"{alphabet}")
-    plt.xticks(np.arange(len(datasets)) + (len(alphabets_results) - 1) * 0.15 / 2, datasets)
+        plt.bar(np.arange(len(datasets)) + i * 0.15, [alphabets_results[alphabet][dataset] for dataset in datasets[::-1]], width=0.15, label=f"{alphabet}")
+    plt.xticks(np.arange(len(datasets)) + (len(alphabets_results) - 1) * 0.15 / 2, DATASETS_NAMES[::-1])
     
     plt.legend(loc='lower right')
     plt.tight_layout()

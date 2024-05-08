@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 import numpy as np
-plt.rcParams.update({'font.size': 13})
+plt.rcParams.update({'font.size': 18})
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', help='file with hyperparameter results', default='src/other/grid_search.csv')
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         alphas_time = [evaluation_times[j][i] for j in range(len(ks))]
         plt.plot(ks, alphas_time, label=f"alpha={alpha}")
     plt.xlabel("k")
-    plt.ylabel("Evaluation Time (char/s)")
+    plt.ylabel("Evaluation Time (samples/s)")
     plt.title("Evaluation Time in function of the hyperparameters")
     plt.legend()
     plt.savefig("src/other/hyperparameter_evaluation_time.png")

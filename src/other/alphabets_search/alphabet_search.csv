@@ -1,0 +1,17 @@
+dataset,file,alphabet,samples,hits,misses
+data1,human,1234567890 abcdefghijklmnopqrstuvwxyz,16222,16218,4
+data1,ai,1234567890 abcdefghijklmnopqrstuvwxyz,17962,17844,118
+data1,human,"1234567890 abcdefghijklmnopqrstuvwxyz.,!?'\""\""/\\;:_-",16222,16218,4
+data1,ai,"1234567890 abcdefghijklmnopqrstuvwxyz.,!?'\""\""/\\;:_-",17962,17840,122
+data1,human,"1234567890 abcdefghijklmnopqrstuvwxyz.,!?'\""\""/\\;:_-@#$%^&*()[]{}<>",16222,16217,5
+data1,ai,"1234567890 abcdefghijklmnopqrstuvwxyz.,!?'\""\""/\\;:_-@#$%^&*()[]{}<>",17962,17833,129
+data1,human, abcdefghijklmnopqrstuvwxyz,16222,16218,4
+data1,ai, abcdefghijklmnopqrstuvwxyz,17962,17848,114
+data2,human,1234567890 abcdefghijklmnopqrstuvwxyz,3593,3474,119
+data2,ai,1234567890 abcdefghijklmnopqrstuvwxyz,2619,2560,59
+data2,human,"1234567890 abcdefghijklmnopqrstuvwxyz.,!?'\""\""/\\;:_-",3593,3471,122
+data2,ai,"1234567890 abcdefghijklmnopqrstuvwxyz.,!?'\""\""/\\;:_-",2619,2610,9
+data2,human,"1234567890 abcdefghijklmnopqrstuvwxyz.,!?'\""\""/\\;:_-@#$%^&*()[]{}<>",3593,3454,139
+data2,ai,"1234567890 abcdefghijklmnopqrstuvwxyz.,!?'\""\""/\\;:_-@#$%^&*()[]{}<>",2619,2613,6
+data2,human, abcdefghijklmnopqrstuvwxyz,3593,3481,112
+data2,ai, abcdefghijklmnopqrstuvwxyz,2619,2556,63

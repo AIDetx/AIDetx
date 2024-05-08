@@ -6,7 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 import numpy as np
-plt.rcParams.update({'font.size': 13})
+plt.rcParams.update({'font.size': 18})
 
 TRAIN = "./bin/train"
 WAS_CHATTED = "./bin/was_chatted"
