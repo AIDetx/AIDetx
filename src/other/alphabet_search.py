@@ -7,8 +7,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 13})
 
-OUTPUT = "src/other/alphabet_search.csv"
-IMAGE_OUTPUT = "src/other/alphabet_search.png"
+OUTPUT = "src/other/alphabets_search"
+# create folder if it does not exist
+Path(OUTPUT).mkdir(parents=True, exist_ok=True)
+
 DATASETS = ["data1", "data2"]
 BEST_K = 8
 BEST_ALPHA = 0.5
@@ -102,11 +104,11 @@ if __name__ == "__main__":
                     df.loc[i] = [dataset, type_, alphabet_text, n_samples, hits, misses]
                     i += 1
 
-        df.to_csv(OUTPUT, index=False)
+        df.to_csv(f"{OUTPUT}/alphabet_search.csv", index=False)
 
     
     # Load the data from the csv
-    data = pd.read_csv(OUTPUT)
+    data = pd.read_csv(f"{OUTPUT}/alphabet_search.csv")
     
     datasets = data['dataset'].unique()
     unique_alphabets = data['alphabet'].unique()
@@ -128,7 +130,7 @@ if __name__ == "__main__":
         alphabets_results[row['alphabet']][row['dataset']] = f1_score
         
     
-    plot_alphabet_comparison(alphabets_results, datasets, IMAGE_OUTPUT)
+    plot_alphabet_comparison(alphabets_results, datasets, f"{OUTPUT}/alphabet_search.png")
     
     
 

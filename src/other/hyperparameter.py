@@ -15,7 +15,7 @@ parser.add_argument('-f', '--file', help='file with hyperparameter results', def
 args = parser.parse_args()
 
 # ONLY_DATA = None
-ONLY_DATA = "data1"
+ONLY_DATA = "data2"
 
 def calculate_f1_score(human_correct, human_incorrect, ai_correct, ai_incorrect):
     # F1 score
@@ -100,7 +100,7 @@ if __name__ == "__main__":
             total_chars += ((26682349 + 26598116)/(35927 + 26186)) * samples_quant[file]
         
     # evaluation_times = [ [time / total_samples for time in k] for k in evaluation_times]
-    evaluation_times = [ [time / total_chars for time in k] for k in evaluation_times]
+    evaluation_times = [ [total_samples / time for time in k] for k in evaluation_times]
         
     
     # plot the results using x as k, y as F1 Score and different colors for each alpha
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         alphas_time = [evaluation_times[j][i] for j in range(len(ks))]
         plt.plot(ks, alphas_time, label=f"alpha={alpha}")
     plt.xlabel("k")
-    plt.ylabel("Evaluation Time (s/char)")
+    plt.ylabel("Evaluation Time (char/s)")
     plt.title("Evaluation Time in function of the hyperparameters")
     plt.legend()
     plt.savefig("src/other/hyperparameter_evaluation_time.png")
