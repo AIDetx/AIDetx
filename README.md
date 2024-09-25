@@ -1,12 +1,14 @@
-# TAI_P2_Group7
+# ai-text-detection-compression
 
 ## Compile
+
 ```bash
 g++ -Wall -O3 src/train.cpp -o bin/train
 g++ -Wall -O3 src/was_chatted.cpp -o bin/was_chatted
 ```
 
 ## Run
+
 ```bash
 # generate data
 python3 src/other/data.py
