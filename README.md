@@ -1,4 +1,6 @@
-# ai-text-detection-compression
+# AIDetx
+
+Distinguish between AI-generated text and human-written content using compression techniques.
 
 ## Compile
 
