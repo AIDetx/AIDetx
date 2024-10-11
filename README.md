@@ -13,10 +13,13 @@ g++ -Wall -O3 src/was_chatted.cpp -o bin/was_chatted
 
 ```bash
 # generate data
-python3 src/other/data.py
+python3 src/other/generate_data.py
 # train a model
-./bin/train -h data/human_train.txt -g data/ai_train.txt -o models/k_5 -a data/alphabet.txt -k 5
+./bin/train -h data/data1/human_train.txt -g data/data1/ai_train.txt -o models/data1 -a data/alphabet.txt -k 8
+./bin/train -h data/data2/human_train.txt -g data/data2/ai_train.txt -o models/data2 -a data/alphabet.txt -k 8
 # test the model
-./bin/was_chatted -m models/k_5 -d data/human_test.txt -a 0.5
-./bin/was_chatted -m models/k_5 -d data/ai_test.txt -a 0.5
+./bin/was_chatted -m models/data1 -d data/data1/human_test.txt -a 0.5
+./bin/was_chatted -m models/data1 -d data/data1/ai_test.txt -a 0.5
+./bin/was_chatted -m models/data2 -d data/data2/human_test.txt -a 0.5
+./bin/was_chatted -m models/data2 -d data/data2/ai_test.txt -a 0.5
 ```
